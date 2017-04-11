@@ -6,6 +6,9 @@ require 'ostruct'
 require_relative 'assert_received'
 
 class TestJSONReference < Minitest::Test
+  def setup
+    JSchema::JSONReference.flush_cache!
+  end
   def test_schema_registration_and_dereferencing
     schema = generate_schema('registered')
     JSchema::JSONReference.register_schema schema
@@ -18,7 +21,7 @@ class TestJSONReference < Minitest::Test
     JSchema::JSONReference.register_schema schema1
     JSchema::JSONReference.register_schema schema2
 
-    assert_equal schema1, dereference(schema1)
+    assert_equal schema2, dereference(schema1)
     assert_equal schema2, dereference(schema2)
   end
 

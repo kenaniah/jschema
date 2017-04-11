@@ -1,4 +1,5 @@
 require 'json'
+require 'colorize'
 
 module JSchema
   module JSONReference
@@ -8,6 +9,7 @@ module JSchema
     class << self
       def register_schema(schema)
         schema_key = key(normalize(schema.uri), schema)
+        puts "Key is: #{schema_key}".red
 
         @mutex.synchronize do
           @schemas[schema_key] = schema
@@ -27,6 +29,10 @@ module JSchema
         end
       end
 
+      def flush_cache!
+        @schemas = {}
+      end
+
       private
 
       def expand_uri(uri, schema)
@@ -44,7 +50,7 @@ module JSchema
       end
 
       def schema_part?(uri, schema)
-        if schema
+        ok = if schema
           uri1_base = uri.dup
           uri1_base.fragment = ''
 
@@ -55,6 +61,8 @@ module JSchema
         else
           false
         end
+        puts ok ? "match".cyan : "no match".blue
+        ok
       end
 
       def build_external_schema(uri, schema)
@@ -74,6 +82,7 @@ module JSchema
       end
 
       def download_schema(uri)
+        puts "Downloading #{uri}".green
         3.times do
           request = Net::HTTP::Get.new(uri.to_s)
           request['Accept'] = 'application/json+schema'
@@ -84,6 +93,7 @@ module JSchema
           http.continue_timeout = 1
           response = http.request(request)
           if ["301", "302"].include?(response.code)
+            puts "Redirected to #{response.header['location']}".yellow
             uri = URI.parse(response.header['location'])
           else
             return response.body
@@ -92,10 +102,6 @@ module JSchema
       end
 
       def key(uri, schema)
-        if schema
-          root_schema = root(schema)
-          return "#{root_schema.object_id}:#{uri}"
-        end
         uri.to_s
       end
 

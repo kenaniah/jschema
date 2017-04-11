@@ -10,6 +10,8 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 1.9.3'
 
+  s.add_development_dependency "colorize"
+
   s.files        = Dir['lib/**/*.rb']
   s.require_path = 'lib'
 end
